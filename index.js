@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express()
 const port = process.env.PORT || 5000
 
@@ -24,6 +24,18 @@ async function run(){
             const query = {}
             const cursor = furnitureCollection.find(query)
             const result = await cursor.toArray()
+            res.send(result)
+        })
+        app.get('/furniture/:id', async(req, res)=>{
+            const id = req.params.id 
+            const query = {_id:ObjectId(id)}
+            const furniture = await furnitureCollection.findOne(query)
+            res.send(furniture)
+        })
+        app.delete('/furniture/:id',async(req, res)=>{
+            const id = req.params.id 
+            const query = {_id:ObjectId(id)}
+            const result = await furnitureCollection.deleteOne(query)
             res.send(result)
         })
     }
