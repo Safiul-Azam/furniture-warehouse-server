@@ -32,6 +32,11 @@ async function run(){
             const furniture = await furnitureCollection.findOne(query)
             res.send(furniture)
         })
+        app.post('/furniture',async(req, res)=>{
+            const productDoc = req.body 
+            const result = await furnitureCollection.insertOne(productDoc)
+            res.send(result)
+        })
         app.delete('/furniture/:id',async(req, res)=>{
             const id = req.params.id 
             const query = {_id:ObjectId(id)}
