@@ -14,46 +14,57 @@ const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
 // used async function
-async function run(){
-    try{
+async function run() {
+    try {
         await client.connect()
         const furnitureCollection = client.db("furnitureWare").collection("furniture");
-    
-        app.get('/furniture',async(req, res)=>{
+
+        app.get('/furniture', async (req, res) => {
             console.log(req.query)
             const query = {}
             const cursor = furnitureCollection.find(query)
             const result = await cursor.toArray()
             res.send(result)
         })
-        app.get('/furniture/:id', async(req, res)=>{
-            const id = req.params.id 
-            const query = {_id:ObjectId(id)}
+        app.get('/furniture/:id', async (req, res) => {
+            const id = req.params.id
+            const query = { _id: ObjectId(id) }
             const furniture = await furnitureCollection.findOne(query)
             res.send(furniture)
         })
-        app.post('/furniture',async(req, res)=>{
-            const productDoc = req.body 
+        app.post('/furniture', async (req, res) => {
+            const productDoc = req.body
             const result = await furnitureCollection.insertOne(productDoc)
             res.send(result)
         })
-        app.delete('/furniture/:id',async(req, res)=>{
-            const id = req.params.id 
-            const query = {_id:ObjectId(id)}
+        app.delete('/furniture/:id', async (req, res) => {
+            const id = req.params.id
+            const query = { _id: ObjectId(id) }
             const result = await furnitureCollection.deleteOne(query)
             res.send(result)
         })
+        app.put('/furniture/:id', async(req, res)=>{
+            const id = req.params.id
+            const updateFurniture = req.body 
+            const filter = {_id:ObjectId(id)}
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: updateFurniture
+            }
+            const result = await furnitureCollection.updateOne(filter,updateDoc,options)
+            res.send(result)
+        })
     }
-    finally{
+    finally {
 
     }
 }
 run().catch(console.dir)
 
 
-app.get('/', (req, res)=>{
+app.get('/', (req, res) => {
     res.send('running furniture ware house server')
 })
-app.listen(port, ()=>{
+app.listen(port, () => {
     console.log('listening ', port)
 })
