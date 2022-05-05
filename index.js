@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const { emit } = require('nodemon');
 const app = express()
 const port = process.env.PORT || 5000
 
@@ -18,10 +19,17 @@ async function run() {
     try {
         await client.connect()
         const furnitureCollection = client.db("furnitureWare").collection("furniture");
+        const sliderCollection = client.db("furnitureWare").collection("sliderInfo");
 
         app.get('/furniture', async (req, res) => {
-            console.log(req.query)
             const query = {}
+            const cursor = furnitureCollection.find(query)
+            const result = await cursor.toArray()
+            res.send(result)
+        })
+        app.get('/myItems' ,async(req, res)=>{
+            const email = req.query.email;
+            const query = {email:email}
             const cursor = furnitureCollection.find(query)
             const result = await cursor.toArray()
             res.send(result)
@@ -54,6 +62,14 @@ async function run() {
             const result = await furnitureCollection.updateOne(filter,updateDoc,options)
             res.send(result)
         })
+
+        app.get('/slider' ,async(req, res)=>{
+            const query = {}
+            const cursor = sliderCollection.find(query)
+            const result = await cursor.toArray()
+            res.send(result)
+        })
+        
     }
     finally {
 
