@@ -66,30 +66,31 @@ async function run() {
             }
         })
         app.get('/furniture/:id', async (req, res) => {
-            const id = req.params.id
+            const id = req?.params?.id
             const query = { _id: ObjectId(id) }
             const furniture = await furnitureCollection.findOne(query)
             res.send(furniture)
         })
         app.post('/furniture', async (req, res) => {
-            const productDoc = req.body
+            const productDoc = req?.body
             const result = await furnitureCollection.insertOne(productDoc)
             res.send(result)
         })
         app.delete('/furniture/:id', async (req, res) => {
-            const id = req.params.id
+            const id = req?.params?.id
             const query = { _id: ObjectId(id) }
             const result = await furnitureCollection.deleteOne(query)
             res.send(result)
         })
         app.put('/furniture/:id', async(req, res)=>{
-            const id = req.params.id
+            const id = req?.params?.id
+            console.log(id)
             const updateFurniture = req.body 
             console.log(updateFurniture)
             const filter = {_id:ObjectId(id)}
             const options = { upsert: true };
             const updateDoc = {
-                $set: {updateFurniture}
+                $set: updateFurniture
             }
             const result = await furnitureCollection.updateOne(filter,updateDoc,options)
             res.send(result)
@@ -102,7 +103,7 @@ async function run() {
             const options = { upsert: true };
             const updateDoc = {
                 $set: {
-                    quantity:updateFurniture
+                    quantity:updateFurniture.quantity
                 }
             }
             const result = await furnitureCollection.updateOne(filter,updateDoc,options)
