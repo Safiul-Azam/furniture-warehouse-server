@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+var jwt = require('jsonwebtoken');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const { emit } = require('nodemon');
 const app = express()
@@ -14,25 +15,55 @@ app.use(express.json())
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.6m4yg.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
+
+const verifyJwt = (req, res, next)=>{
+    const authHeader = req.headers.authorization
+    if(!authHeader){
+        return res.status(401).send({message:'unauthorized access'})
+    }
+    const token = authHeader.split(' ')[1]
+    jwt.verify(token, process.env.ACCESS_TOKEN,(err, decoded)=>{
+        if(err){
+            return res.status(403).send({message:'forbidden access'})
+        }
+        req.decoded = decoded
+    })
+    next()
+}
 // used async function
 async function run() {
     try {
+
+        
         await client.connect()
         const furnitureCollection = client.db("furnitureWare").collection("furniture");
         const sliderCollection = client.db("furnitureWare").collection("sliderInfo");
-
+        const arrivalCollection = client.db("furnitureWare").collection("arrivalFurniture");
+        
+        app.post('/login', async(req, res)=>{
+            const user = req.body 
+            const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN,{
+                expiresIn:'1d'
+            })
+            res.send(accessToken)
+        })
         app.get('/furniture', async (req, res) => {
             const query = {}
             const cursor = furnitureCollection.find(query)
             const result = await cursor.toArray()
             res.send(result)
         })
-        app.get('/myItems' ,async(req, res)=>{
+        app.get('/myItems',verifyJwt ,async(req, res)=>{
+            const decodedEmail = req.decoded.email
             const email = req.query.email;
-            const query = {email:email}
-            const cursor = furnitureCollection.find(query)
-            const result = await cursor.toArray()
-            res.send(result)
+            if(email === decodedEmail){
+                const query = {email:email}
+                const cursor = furnitureCollection.find(query)
+                const result = await cursor.toArray()
+                res.send(result)
+            }else{
+                res.status(403).send({message:'forbidden access'})
+            }
         })
         app.get('/furniture/:id', async (req, res) => {
             const id = req.params.id
@@ -71,7 +102,7 @@ async function run() {
             const options = { upsert: true };
             const updateDoc = {
                 $set: {
-                    quantity:updateFurniture.quantity
+                    quantity:updateFurniture
                 }
             }
             const result = await furnitureCollection.updateOne(filter,updateDoc,options)
@@ -81,6 +112,12 @@ async function run() {
         app.get('/slider' ,async(req, res)=>{
             const query = {}
             const cursor = sliderCollection.find(query)
+            const result = await cursor.toArray()
+            res.send(result)
+        })
+        app.get('/arrival' ,async(req, res)=>{
+            const query = {}
+            const cursor = arrivalCollection.find(query)
             const result = await cursor.toArray()
             res.send(result)
         })
