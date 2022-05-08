@@ -54,10 +54,25 @@ async function run() {
         app.put('/furniture/:id', async(req, res)=>{
             const id = req.params.id
             const updateFurniture = req.body 
+            console.log(updateFurniture)
             const filter = {_id:ObjectId(id)}
             const options = { upsert: true };
             const updateDoc = {
-                $set: updateFurniture
+                $set: {updateFurniture}
+            }
+            const result = await furnitureCollection.updateOne(filter,updateDoc,options)
+            res.send(result)
+        })
+        app.put('/quantity/:id', async(req, res)=>{
+            const id = req.params.id
+            const updateFurniture = req.body 
+            console.log(updateFurniture)
+            const filter = {_id:ObjectId(id)}
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: {
+                    quantity:updateFurniture.quantity
+                }
             }
             const result = await furnitureCollection.updateOne(filter,updateDoc,options)
             res.send(result)
