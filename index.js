@@ -122,7 +122,6 @@ async function run() {
             const result = await cursor.toArray()
             res.send(result)
         })
-        
     }
     finally {
 
